@@ -1,111 +1,222 @@
 # ChainLens
 
-> A **Web2-data relay market** for autonomous agents on Base. Agents discover
-> verified data sellers, pay in USDC through escrow, and receive
-> schema-validated, hash-committed responses in one round-trip — no API keys,
-> no OAuth, just a wallet.
+> Agent-native API marketplace on Base. Agents discover verified data sellers,
+> pay in USDC over **x402**, and receive schema-validated responses in one
+> round-trip — no API keys, no OAuth, just a wallet. Powered by **AWS Bedrock
+> + Claude Sonnet 4.5** for AI-assisted seller insights.
 
-**Type 2 MVP (Base Sepolia)**
-
-| Contract                               | Address                                      |
-| -------------------------------------- | -------------------------------------------- |
-| `ApiMarketEscrowV2`                    | `0x1F7dE3fdDA5216236c7F413F2AD03bF19A3F319E` |
-| `SellerRegistry` (ERC-8004 compatible) | `0xcF36b76b5Da55471D4EBB5349A0653624371BE2c` |
-| `TaskTypeRegistry`                     | `0xD2ab227417B26f4d8311594C27c59adcA046501F` |
-| USDC (payment token)                   | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+**Coinbase × AWS Agentic Hackathon — Consensus Miami 2026 submission**
 
 ---
 
-## What is ChainLens?
+## 🎬 Demo
 
-ChainLens solves a narrow but painful problem for AI agents: **how do I know
-the data an external API just gave me is real, and how do I pay for it
-without leaking a credit card?**
+[![ChainLens demo — agent-native API marketplace with x402 + AWS Bedrock](https://img.youtube.com/vi/5a4RK2OOSSQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=5a4RK2OOSSQ&t=12s)
 
-Every request follows a fixed lifecycle on-chain:
+> Loom-style walk-through (5 min) — discover, inspect, pay-on-call,
+> verify on-chain, plus the AI Market Analyst SaaS for sellers.
+> [▶ Watch on YouTube](https://www.youtube.com/watch?v=5a4RK2OOSSQ&t=12s)
 
-1. Buyer approves USDC and calls `createJob(seller, taskType, amount, inputsHash, apiId)`.
-2. The gateway calls the seller's HTTP endpoint, validates the response
-   against the task type's JSON schema, scans for prompt-injection strings,
-   and computes `keccak256(response)` as `responseHash`.
-3. If the response is clean, the gateway calls `submitJob(jobId, responseHash, evidenceURI)`
-   on-chain and records a success in `SellerRegistry`. Otherwise it calls
-   `refund(jobId)` and records a failure.
-4. Any client can later fetch `GET /api/evidence/:jobId`, recompute the hash,
-   and confirm it matches the on-chain commitment.
-
-This means the seller's reputation is on-chain, the payment is on-chain, and
-every answer is independently verifiable.
+**Live demo:** <https://chainlens.pelicanlab.dev>
 
 ---
 
-## Monorepo layout
+## ✨ Highlights
 
-| Package                                              | Purpose                                                                                                                                                                          |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/contracts`](packages/contracts)           | `ApiMarketEscrowV2`, `SellerRegistry`, `TaskTypeRegistry`, `MockUSDC`. Hardhat + Ignition.                                                                                       |
-| [`packages/backend`](packages/backend)               | Express gateway: `/api/apis`, `/api/jobs`, `/api/evidence/:jobId`, `/api/reputation/:addr`. Listens for v2 events and finalizes jobs.                                            |
-| [`packages/frontend`](packages/frontend)             | Next.js 15 marketplace, evidence explorer, reputation pages.                                                                                                                     |
-| [`packages/shared`](packages/shared)                 | Contract ABIs, addresses, task type registry, chain configs.                                                                                                                     |
-| [`packages/mcp-tool`](packages/mcp-tool)             | `@chain-lens/mcp-tool` — MCP server with `chain-lens.discover` / `inspect` / `status`, plus paid `request` (legacy v2) and `call` (current v3 x402) when a signer is configured. |
-| [`packages/sample-sellers`](packages/sample-sellers) | Reference seller agents (Blockscout / DeFiLlama / Sourcify) + Dockerfiles.                                                                                                       |
-
----
-
-## Initial task types
-
-Registered at deploy time (spec §8):
-
-| Task type                    | Description                              |
-| ---------------------------- | ---------------------------------------- |
-| `blockscout_contract_source` | Verified contract source code + ABI      |
-| `blockscout_tx_info`         | Transaction details (gas, value, status) |
-| `defillama_tvl`              | DeFi protocol TVL + per-chain breakdown  |
-| `sourcify_verify`            | Contract bytecode verification status    |
-| `chainlink_price_feed`       | On-chain price oracle read               |
-
-Each has a JSON schema the gateway enforces before `responseHash` is
-committed. Bad responses trigger refund + reputation penalty automatically.
+- **x402 payment rail** — buyers sign EIP-3009 `ReceiveWithAuthorization`,
+  the gateway settles on `ChainLensMarket.settle()` only **after** the seller
+  responds and passes schema validation. No upfront approvals, no escrow lock.
+- **AI Analyst layer (AWS Bedrock + Claude Sonnet 4.5)** — natural-language
+  trust + market analysis for any listing. Sellers buy a **premium analysis
+  of their own listing for 0.5 USDC** through the same x402 path.
+- **Reusable seller reputation** — `claimable[seller]` is pull-pattern and
+  cumulative across all paid calls; every settlement is a public on-chain
+  event.
+- **Agent-first surface** — same listings consumable by browser users, the
+  `@chain-lens/sdk` (Node), the MCP tool (Claude Desktop / Cursor), or any
+  x402-aware HTTP client.
 
 ---
 
-## Quick start
+## 🖼 UI Screenshots
+
+> Screenshots live in [`docs/screenshots/`](docs/screenshots) (add your own
+> captures). Suggested shot list below.
+
+| View | What it shows |
+|---|---|
+| `landing.png` | Landing hero + agent quickstart terminal |
+| `discover.png` | Marketplace catalog with success-rate badges, category filter, on-chain trust signal |
+| `discover-detail.png` | Listing detail — metadata, schema, recent policy signals, paid-test card |
+| `seller-dashboard.png` | Seller dashboard with the **"Buy Market Analysis (0.5 USDC)"** CTA on each owned listing |
+| `seller-buy-progress.png` | Live progress UI during a paid call — spinner + stage labels + elapsed timer + content skeleton |
+| `seller-analysis-result.png` | Premium analysis card (trend, forecast, competitive positioning, pricing analysis, opportunities, risk factors, this-week / this-month action plan) |
+| `admin-treasury.png` | Admin → **Treasury tab** with claimable balance, treasury wallet badge, `Claim X USDC` button |
+| `basescan-settle.png` | Successful `settle()` tx on BaseScan with the listing fee + payout split visible |
+
+---
+
+## 🔗 Blockchain integration
+
+Every paid call follows the same lifecycle on Base Sepolia:
+
+```
+Buyer wallet ─── EIP-3009 sig ───▶  Gateway ───▶  Seller HTTP endpoint
+       ▲                                │                   │
+       │  X-Payment header / inputs     │  validate, scan   │
+       │                                ▼                   │
+       │                         ChainLensMarket.settle()   │
+       │                                │                   │
+       │             5% fee ── claimable[treasury]          │
+       │             95% net ─ claimable[payout]            │
+       │                                │                   │
+       └────────── response + settleTxHash ◀────────────────┘
+```
+
+### Live contracts (Base Sepolia)
+
+| Contract | Address |
+|---|---|
+| `ChainLensMarket` (v3, x402-native) | [`0x45bB56fDB0E6bb14d178E417b67Ed7B3323ffFf7`](https://sepolia.basescan.org/address/0x45bB56fDB0E6bb14d178E417b67Ed7B3323ffFf7) |
+| `ApiMarketEscrowV2` (legacy v2 escrow) | [`0xD4c40710576f582c49e5E6417F6cA2023E30d3aD`](https://sepolia.basescan.org/address/0xD4c40710576f582c49e5E6417F6cA2023E30d3aD) |
+| `SellerRegistry` (ERC-8004 compatible) | [`0xcF36b76b5Da55471D4EBB5349A0653624371BE2c`](https://sepolia.basescan.org/address/0xcF36b76b5Da55471D4EBB5349A0653624371BE2c) |
+| `TaskTypeRegistry` | [`0xD2ab227417B26f4d8311594C27c59adcA046501F`](https://sepolia.basescan.org/address/0xD2ab227417B26f4d8311594C27c59adcA046501F) |
+| USDC (payment token) | [`0x036CbD53842c5426634e7929541eC2318f3dCF7e`](https://sepolia.basescan.org/address/0x036CbD53842c5426634e7929541eC2318f3dCF7e) |
+
+### `settle()` — the critical 30 lines
+
+`ChainLensMarket.settle()` enforces the entire payment-and-fee logic in one
+non-reentrant call (see [`packages/contracts/contracts/ChainLensMarket.sol`](packages/contracts/contracts/ChainLensMarket.sol)):
+
+```solidity
+function settle(uint256 listingId, bytes32 jobRef, address buyer,
+                uint256 amount, /* EIP-3009 fields ... */ uint8 v, bytes32 r, bytes32 s)
+    external onlyGateway nonReentrant
+{
+    require(amount > 0, "amount zero");
+    Listing storage l = _listings[listingId];
+    require(l.owner != address(0), "listing not found");
+    require(l.active, "listing inactive");
+
+    IERC20WithAuthorization(address(usdc)).receiveWithAuthorization(
+        buyer, address(this), amount, validAfter, validBefore, nonce, v, r, s
+    );
+
+    uint256 fee = (amount * serviceFeeBps) / BPS_DIVISOR;
+    uint256 sellerNet = amount - fee;
+
+    claimable[l.payout] += sellerNet;          // pull-pattern, gas-bounded
+    if (fee > 0) claimable[treasury] += fee;
+
+    emit Settled(listingId, jobRef, buyer, l.payout, amount, fee);
+}
+```
+
+Sellers and treasury both pull their accrued balance via the same `claim()`:
+
+```solidity
+function claim() external nonReentrant {
+    uint256 amt = claimable[msg.sender];
+    require(amt > 0, "nothing to claim");
+    claimable[msg.sender] = 0;
+    usdc.safeTransfer(msg.sender, amt);
+    emit Claimed(msg.sender, amt);
+}
+```
+
+---
+
+## 🤖 AI Analyst layer (AWS Bedrock × Claude)
+
+ChainLens uses AWS Bedrock to add **natural-language judgment** on top of
+deterministic on-chain + operational data — without ever letting the LLM
+gate a payment, a schema, or a settlement.
+
+### Two surfaces, two models
+
+| Surface | Caller | Model | Latency | Pricing |
+|---|---|---|---|---|
+| `GET /api/listings/:id/(trust\|market)-analysis` | Public, free, advisory | Claude Haiku 4.5 (Bedrock inference profile) | ~10s, 1h cached | Free, ChainLens absorbs cost |
+| **AI Market Analyst by ChainLens** (paid x402 listing #18) | Sellers | Claude Haiku 4.5 with `depth=premium` prompt | ~10–12s per call | **0.5 USDC** to seller wallet, settled on-chain |
+
+The premium output the seller pays for includes: trend + strength, multi-
+sentence insight, forecast with numerical targets, competitive positioning,
+pricing analysis, 3–5 tactical opportunities, risk factors, and a
+this-week / this-month action plan. See
+[`packages/backend/src/lib/market-analyzer.ts`](packages/backend/src/lib/market-analyzer.ts).
+
+### How a seller buys an analysis
+
+1. Seller opens **`/seller`**, sees the AI Market Analyst CTA on each owned
+   listing card.
+2. Click → wallet pops EIP-3009 signature for 0.5 USDC.
+3. Gateway runs `ChainLensMarket.settle()` on listing #18 (whose endpoint is
+   an `internal://market-analysis` sentinel — short-circuited to an
+   in-process Bedrock call instead of a public HTTP fetch).
+4. 5% fee accrues to `claimable[treasury]`, 95% accrues to ChainLens's
+   payout — both addresses are the same treasury wallet for self-listing.
+5. Result renders in-page with a fade-up animation.
+
+### Why this design
+
+- **Non-determinism stays in the right place.** LLMs are great at synthesis,
+  bad at access control. Bedrock outputs influence buyer / seller decisions,
+  never the gate.
+- **No new contract.** Listing #18 is registered through the same `register()`
+  every other seller uses, so SDK / MCP / x402 clients see it as just another
+  paid endpoint. Hidden from the public catalog with a single
+  `endpoint NOT LIKE 'internal://%'` filter.
+- **Observability lives in the chain log.** Every paid analysis emits a
+  `Settled` event — no parallel "AI usage" ledger to maintain.
+
+---
+
+## 📦 Monorepo layout
+
+| Package | Purpose |
+|---|---|
+| [`packages/contracts`](packages/contracts) | `ChainLensMarket` (v3 x402), `ApiMarketEscrowV2` (legacy), registries. Hardhat + Ignition. |
+| [`packages/backend`](packages/backend) | Express gateway: `/api/market/listings`, `/api/market/call/:id`, `/api/listings/:id/(trust\|market)-analysis`, `/api/x402/:id`, admin + seller endpoints. AWS Bedrock client lives in [`src/lib`](packages/backend/src/lib). |
+| [`packages/frontend`](packages/frontend) | Next.js 15 marketplace + seller dashboard + admin Treasury tab + paid-call UI with skeleton/animation. |
+| [`packages/shared`](packages/shared) | Contract ABIs, addresses, task type registry, chain configs. |
+| [`packages/sdk`](packages/sdk) | `@chain-lens/sdk` — `chainlens.call(listingId, params)` + budget controls + telemetry. |
+| [`packages/cli`](packages/cli) | `npx @chain-lens/cli` — quickstart wrapper. |
+| [`packages/mcp-tool`](packages/mcp-tool) | MCP server: `chain-lens.discover` / `inspect` / `status` / `call` for Claude Desktop / Cursor. |
+
+---
+
+## 🚀 Quick start
 
 ```bash
 pnpm install
-cp .env.example .env                                  # fill PLATFORM_URL, PRIVATE_KEY, DATABASE_URL
-docker compose up -d                                  # postgres
-pnpm --filter @chain-lens/backend db:migrate
-pnpm dev                                              # starts backend + frontend
+cp .env.example .env                                  # PORT, PRIVATE_KEY, RPC_URL, AWS_*
+docker compose up -d                                  # postgres + backend + frontend + nginx
+docker compose logs -f backend
 ```
 
-Run a sample seller in another terminal:
+**Required env vars (root `.env`):**
 
-```bash
-pnpm --filter @chain-lens/sample-sellers dev:defillama # :8082
+```
+DATABASE_URL=postgresql://postgres:...@db:5432/monapi
+PRIVATE_KEY=0x...                                     # gateway / owner key (whitelist on settle())
+CONTRACT_ADDRESS=0xD4c40710576f582c49e5E6417F6cA2023E30d3aD
+RPC_URL=https://base-sepolia.g.alchemy.com/v2/<KEY>
+JWT_SECRET=<32+ chars>
+
+# AWS Bedrock (AI Analyst)
+AWS_REGION=us-east-2
+BEDROCK_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
 ```
 
-- **Buyers:** [docs/BUYER_GUIDE.md](docs/BUYER_GUIDE.md) — wallet setup,
-  Claude Desktop config, first query, evidence verification.
-- **Sellers:** [packages/create-seller](packages/create-seller) +
-  [SKILL.md](packages/create-seller/SKILL.md) — `npx @chain-lens/create-seller init`,
-  deploy, register, monitor. An IDE agent (Claude Code, Cursor) can
-  drive the whole flow from the SKILL.md.
-- **Provider drafts:** [docs/PROVIDER_DRAFT_API.md](docs/PROVIDER_DRAFT_API.md) —
-  GitHub directory metadata can become a claimable ChainLens draft before
-  wallet-based seller registration.
-- **Demos:** [docs/DEMO.md](docs/DEMO.md) — three end-to-end scenarios
-  (browser buyer, MCP agent, seller onboarding).
+**Live demo:** <https://chainlens.pelicanlab.dev>
+**Marketplace:** <https://chainlens.pelicanlab.dev/discover>
+**Seller dashboard:** <https://chainlens.pelicanlab.dev/seller>
 
 ---
 
-## Agent integration (MCP)
-
-The [`@chain-lens/mcp-tool`](packages/mcp-tool) package exposes read tools
-(`chain-lens.discover`, `chain-lens.inspect`, `chain-lens.status`) plus paid
-tools when a signer is configured. `chain-lens.call` is the current v3 x402
-path; `chain-lens.request` remains available for the legacy v2 escrow flow.
-Install with `npx` — no clone required:
+## 🤝 Agent integration (MCP)
 
 ```jsonc
 // ~/Library/Application Support/Claude/claude_desktop_config.json
@@ -115,121 +226,118 @@ Install with `npx` — no clone required:
       "command": "npx",
       "args": ["-y", "@chain-lens/mcp-tool"],
       "env": {
-        "CHAIN_LENS_API_URL": "https://your-chain-lens/api",
+        "CHAIN_LENS_API_URL": "https://chainlens.pelicanlab.dev/api",
         "CHAIN_ID": "84532",
         "RPC_URL": "https://base-sepolia.g.alchemy.com/v2/<YOUR_KEY>",
-        "WALLET_PRIVATE_KEY": "0x...",
-      },
-    },
-  },
+        "WALLET_PRIVATE_KEY": "0x..."
+      }
+    }
+  }
 }
 ```
 
 Tools:
 
-- `chain-lens.discover` — search v3 listings via `GET /api/market/listings`
-- `chain-lens.inspect` — deep-dive on one listing via `GET /api/market/listings/:id`
-- `chain-lens.status` — fetch stored evidence for a job id
-- `chain-lens.call` — current paid v3 x402 flow
+- `chain-lens.discover` — search v3 listings via `GET /api/market/listings` (internal listings hidden automatically)
+- `chain-lens.inspect` — deep-dive on one listing
+- `chain-lens.status` — fetch evidence for a job id
+- `chain-lens.call` — paid v3 x402 flow (any listing, including #18 for AI Market Analyst)
 - `chain-lens.request` — legacy paid v2 escrow flow
 
-`WALLET_PRIVATE_KEY` is optional; without it the agent can still `discover`,
-`inspect`, and read `status`, just not spend.
-
-## HTTP x402 endpoint
-
-An alternative to the MCP path is the plain-HTTP x402 facade. Any x402-aware
-HTTP client can negotiate payment without installing `@chain-lens/mcp-tool`.
-
-```bash
-# 1. Call the listing-specific x402 endpoint without payment to inspect terms
-curl -i https://chainlens.pelicanlab.dev/api/x402/<listingId>
-
-# 2. Sign a USDC ReceiveWithAuthorization for ChainLensMarket, encode it as
-#    X-Payment, then retry the GET with inputs in the query string:
-curl -H "X-Payment: <base64url-json>" \
-  "https://chainlens.pelicanlab.dev/api/x402/<listingId>?protocol=lido"
-# → { jobRef, settleTxHash, delivery, untrusted_data, ... }
-```
-
-The x402 payload is listing-specific and the retry path is the current v3
-market flow. The gateway settles on-chain only after the seller response
-passes execution checks; failed seller calls drop the signed authorization so
-no USDC moves.
-
-Standard x402 clients can parse the 402 response but need ChainLens-aware
-signing logic to complete payment — the `mcp-tool` package bundles this.
+`WALLET_PRIVATE_KEY` is optional; without it the agent can still discover,
+inspect, and read status — just not spend.
 
 ---
 
-## Becoming a seller — wrapper contract
+## 💳 HTTP x402 endpoint
 
-The `endpoint` registered in a listing is called **by the ChainLens gateway**,
-not directly by buyers. Every job the gateway receives gets forwarded to
-the seller as:
+For x402-aware HTTP clients without the MCP package:
+
+```bash
+# 1. Probe terms (returns 402 with the ChainLens-specific payment requirements)
+curl -i https://chainlens.pelicanlab.dev/api/x402/<listingId>
+
+# 2. Sign a USDC ReceiveWithAuthorization for ChainLensMarket, base64url-encode,
+#    retry with X-Payment header + inputs in the query string:
+curl -H "X-Payment: <base64url-json>" \
+  "https://chainlens.pelicanlab.dev/api/x402/<listingId>?protocol=lido"
+```
+
+Response shape:
+
+```jsonc
+{
+  "jobRef": "0x...",
+  "settleTxHash": "0x...",
+  "delivery": "in-band",
+  "untrusted_data": { /* seller response */ },
+  "envelope": { /* host, listingId, jobRef */ },
+  "safety": { "schemaValid": true, "warnings": [] }
+}
+```
+
+The gateway settles on-chain only after schema + injection scan pass; failed
+seller calls drop the signed authorization, so no USDC moves.
+
+---
+
+## 🛠 Becoming a seller
+
+The `endpoint` registered in a listing is called **by the gateway**, not the
+buyer. Each request arrives as:
 
 ```http
 POST <your endpoint>
 Content-Type: application/json
 
 {
-  "task_type": "defillama_tvl",
-  "inputs": { "protocol": "lido" },
+  "task_type": "<type>",
+  "inputs": { ... },
   "jobId": "42",
   "buyer": "0x..."
 }
 ```
 
-The response must be JSON matching the task type's `schemaURI` registered
-in `TaskTypeRegistry`. A response that doesn't parse, doesn't match the
-schema, or trips the prompt-injection scan is refunded to the buyer
-automatically.
+Response must be JSON matching the `output_schema` in your listing's
+metadata. Schema mismatches and prompt-injection hits trigger
+`response_rejected_*` and the buyer's authorization is **never settled**.
 
-Pointing `endpoint` at a raw upstream (e.g. `api.llama.fi/...`,
-`blockscout.com/api/...`) is the most common cause of refunds right
-after registration — those services don't accept this POST shape.
-Use one of the wrappers in
-[`packages/sample-sellers`](packages/sample-sellers) as a template, or
-scaffold a new one with `npx @chain-lens/create-seller`. Both deploy
-as a small HTTP service (Docker or otherwise) that translates the
-gateway's call into whatever your upstream actually expects, normalizes
-the response, and returns it.
-
-The gateway sends a single POST per buyer request — no streaming, no
-long-polling. Default timeout is 30 seconds (configurable per task type
-via `TaskTypeRegistry.maxResponseTime`).
+Templates: [`packages/sample-sellers`](packages/sample-sellers) (Blockscout,
+DeFiLlama, Sourcify wrappers).
+Scaffold: `npx @chain-lens/create-seller init`.
+Detailed flow: [`docs/BUYER_GUIDE.md`](docs/BUYER_GUIDE.md), [`docs/DEMO.md`](docs/DEMO.md).
 
 ---
 
-## Security posture
+## 🔒 Security posture
 
-| Layer    | Control                                                                                                                         |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Contract | `ReentrancyGuard` + `SafeERC20` on v2 escrow; `Ownable2Step` + pausable on registries.                                          |
-| Backend  | Ajv schema validation on every seller response; regex + string scan for prompt-injection before commit; per-seller rate limits. |
-| Frontend | `responseHash` re-computation on the client so users can audit without trusting the gateway.                                    |
-
-See [TYPE2_MVP_CLEAN_BUILD_SPEC.md](TYPE2_MVP_CLEAN_BUILD_SPEC.md) §9 for
-the full checklist.
+| Layer | Control |
+|---|---|
+| Contract | `ReentrancyGuard` + `SafeERC20`; gateway whitelist on `settle()`; `Ownable2Step` on registries; pause-aware. |
+| Backend | Ajv schema validation on every seller response; injection scan before commit; 30s timeout per seller call; `response_rejected_*` short-circuits settlement. |
+| Frontend | EIP-3009 signing client-side; users see `responseHash` + tx link to BaseScan; no private state. |
+| LLM | Bedrock outputs are advisory only — never gate payment, schema, or admin actions. Auth check at boot; missing creds log a warning instead of crashing the gateway. |
 
 ---
 
-## Tech stack
+## 🧰 Tech stack
 
-- **Contracts:** Solidity 0.8.28, Hardhat, Hardhat Ignition, OpenZeppelin v5
-- **Backend:** Express 4, Prisma 6 (PostgreSQL), viem, Ajv, pino
-- **Frontend:** Next.js 15, RainbowKit, wagmi, viem, Tailwind
+- **Contracts:** Solidity 0.8.28, Hardhat, OpenZeppelin v5, Hardhat Ignition
+- **Backend:** Express 4, Prisma 6 (PostgreSQL), viem, Ajv, pino, **`@aws-sdk/client-bedrock-runtime`**
+- **Frontend:** Next.js 15, RainbowKit, wagmi, viem, Tailwind 3
 - **Agent:** `@modelcontextprotocol/sdk` stdio server
-- **Chain:** Base Sepolia (live) / Base Mainnet (addresses TBD)
-- **Payment:** USDC (ERC-20, 6 decimals)
+- **Chain:** Base Sepolia (live)
+- **Payment:** USDC (ERC-20, 6 decimals) over EIP-3009 ReceiveWithAuthorization
+- **AI:** AWS Bedrock — Claude Haiku 4.5 inference profile (`us.anthropic.claude-haiku-4-5-20251001-v1:0`)
 
 ---
 
-## Status
+## 🗺 Status
 
-See [PROGRESS.md](PROGRESS.md) for the day-by-day build log and current state.
-All three weeks of the Type 2 MVP spec are implemented and tested (backend
-79/79, MCP 17/17, sample-sellers 18/18, contracts 34/34).
+See [`PROGRESS.md`](PROGRESS.md) for the day-by-day build log. Type 2 MVP
+infrastructure is fully implemented and tested (backend, MCP, sample
+sellers, contracts). The AI Analyst layer + paid Market Analyst SaaS were
+added for the Coinbase × AWS Agentic Hackathon.
 
 ## License
 
