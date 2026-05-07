@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { baseSepolia } from "@chain-lens/shared";
 import { useMarketPayment } from "@/hooks/useMarketPayment";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 import type { ListingDetail } from "@/types/market";
 
 type Props = {
@@ -132,19 +133,20 @@ export default function MarketPurchaseCard({ listing }: Props) {
       <button
         onClick={handleSubmit}
         disabled={!isConnected || !isPurchasable || isLoading}
-        className="mt-4 w-full btn-primary py-3 text-base disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 w-full btn-primary inline-flex items-center justify-center gap-2 py-3 text-base disabled:cursor-not-allowed disabled:opacity-60"
       >
+        {isLoading && <InlineSpinner size={14} />}
         {step === "signing"
-          ? "Sign USDC Authorization..."
+          ? "Sign USDC authorization…"
           : step === "submitting"
-            ? "Calling Seller + Settling..."
+            ? "Calling seller + settling…"
             : "Run Paid Test Call"}
       </button>
 
       {error && <p className="mt-3 text-sm text-[var(--red)]">{error}</p>}
 
       {result && (
-        <div className="mt-5 space-y-4 rounded-lg border border-[var(--border)] bg-[var(--bg3)] p-4">
+        <div className="mt-5 space-y-4 rounded-lg border border-[var(--border)] bg-[var(--bg3)] p-4 animate-fade-up">
           <div>
             <div className="text-xs text-[var(--text3)]">Settlement Tx</div>
             <a

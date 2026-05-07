@@ -292,3 +292,34 @@
     color: var(--text);
   }
 }
+
+/* ── Mount-time entrance animations ──────────────────────────
+ * Used when async results (AI analysis, paid call response, etc.) mount
+ * after a long wait — pop-in feels jarring. The fade+slide hint that the
+ * content "arrived" rather than was already there. */
+@keyframes ai-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: ai-fade-up 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slightly delayed variant so a header + body can stagger on mount. */
+.animate-fade-up-delayed {
+  animation: ai-fade-up 420ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-up-delayed {
+    animation: none;
+  }
+}

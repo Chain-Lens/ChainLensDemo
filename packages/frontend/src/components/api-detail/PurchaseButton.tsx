@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
 import { usePayment } from "@/hooks/usePayment";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 import type { ApiListingPublic } from "@chain-lens/shared";
 
 type Props = {
@@ -56,18 +57,19 @@ export default function PurchaseButton({ api, onPurchaseSuccess }: Props) {
       <button
         onClick={handlePurchase}
         disabled={isLoading}
-        className="w-full btn-primary py-3 text-lg"
+        className="w-full btn-primary inline-flex items-center justify-center gap-2 py-3 text-lg"
       >
+        {isLoading && <InlineSpinner size={14} />}
         {isPreparing
-          ? "Preparing..."
+          ? "Preparing…"
           : step === "approving" && (isWriting || isConfirming)
             ? isWriting
-              ? "Approve USDC in wallet..."
-              : "Approving USDC..."
+              ? "Approve USDC in wallet…"
+              : "Approving USDC…"
             : step === "paying" && (isWriting || isConfirming)
               ? isWriting
-                ? "Confirm payment in wallet..."
-                : "Confirming payment..."
+                ? "Confirm payment in wallet…"
+                : "Confirming payment…"
               : "Purchase API"}
       </button>
 

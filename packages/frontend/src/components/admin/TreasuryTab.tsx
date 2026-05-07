@@ -5,6 +5,7 @@ import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteCont
 import { formatUnits } from "viem";
 import { baseSepolia } from "@chain-lens/shared";
 import { chainLensMarketConfig } from "@/config/contracts";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 
 /** Minimal ABI extracted from the ChainLensMarket — we only need the
  *  treasury getter, the claimable[address] read, and the claim() write. */
@@ -140,8 +141,9 @@ export default function TreasuryTab() {
             type="button"
             onClick={handleClaim}
             disabled={!canClaim}
-            className="btn-primary px-5 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary inline-flex items-center gap-2 px-5 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
+            {(isSending || isConfirming) && <InlineSpinner size={12} />}
             {isSending
               ? "Confirm in wallet…"
               : isConfirming

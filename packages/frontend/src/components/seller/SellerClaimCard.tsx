@@ -1,6 +1,7 @@
 "use client";
 
 import { formatUsdcLabel } from "@/lib/format";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 
 export default function SellerClaimCard({
   pendingAmount,
@@ -36,9 +37,10 @@ export default function SellerClaimCard({
       <button
         onClick={onClaim}
         disabled={!hasPending || isPending || isConfirming}
-        className="btn-primary px-6 py-2"
+        className="btn-primary inline-flex items-center gap-2 px-6 py-2"
       >
-        {isPending || isConfirming ? "Claiming..." : "Claim"}
+        {(isPending || isConfirming) && <InlineSpinner size={12} />}
+        {isPending ? "Confirm in wallet…" : isConfirming ? "Confirming…" : "Claim"}
       </button>
     </div>
   );

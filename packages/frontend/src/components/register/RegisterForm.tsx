@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { parseUnits } from "viem";
 import { useRegisterV3, type ListingMetadata } from "@/hooks/useRegisterV3";
 import { apiClient } from "@/lib/api-client";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 
 export type RegisterFormPrefill = {
   providerSlug?: string;
@@ -637,7 +638,12 @@ export default function RegisterForm({ prefill }: { prefill?: RegisterFormPrefil
       {formError && <p className="text-sm text-[var(--red)]">{formError}</p>}
       {error && <p className="text-sm text-[var(--red)]">{error}</p>}
 
-      <button type="submit" disabled={!canSubmit} className="w-full btn-primary py-3">
+      <button
+        type="submit"
+        disabled={!canSubmit}
+        className="w-full btn-primary inline-flex items-center justify-center gap-2 py-3"
+      >
+        {(isPending || isConfirming) && <InlineSpinner size={14} />}
         {isPending
           ? "Confirm in wallet…"
           : isConfirming

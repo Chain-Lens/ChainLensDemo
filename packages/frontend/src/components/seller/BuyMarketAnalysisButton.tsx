@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { baseSepolia } from "@chain-lens/shared";
 import { useMarketPayment } from "@/hooks/useMarketPayment";
-import { MarketAnalysisView } from "@/components/discover/MarketAnalysisCard";
+import {
+  MarketAnalysisSkeleton,
+  MarketAnalysisView,
+} from "@/components/discover/MarketAnalysisCard";
+import InlineSpinner from "@/components/shared/InlineSpinner";
 import type { MarketAnalysis } from "@/lib/ai-analysis-api";
 
 /** ChainLens self-listing — registered on-chain, status APPROVED in DB.
@@ -23,6 +27,22 @@ export default function BuyMarketAnalysisButton({ targetListingId }: Props) {
   const [analysis, setAnalysis] = useState<MarketAnalysis | null>(null);
   const [settleTx, setSettleTx] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+
+  // Tick an elapsed timer while loading so 25-40s waits don't read as "stuck"
+  // — users can see progress is happening even though the button itself can't
+  // expose Bedrock streaming progress.
+  useEffect(() => {
+    if (!isLoading) {
+      setElapsed(0);
+      return;
+    }
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 250);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   async function handleBuy() {
     setLocalError(null);
@@ -45,12 +65,11 @@ export default function BuyMarketAnalysisButton({ targetListingId }: Props) {
     }
   }
 
-  // If the buyer already has results, show them. Otherwise show the buy CTA.
   if (analysis) {
     return (
-      <div className="mt-3">
+      <div className="mt-3 animate-fade-up">
         {settleTx && (
-          <div className="mb-2 text-xs text-[var(--text3)]">
+          <div className="mb-2 text-xs text-[var(--text3)] animate-fade-up">
             Settled on-chain ·{" "}
             <a
               href={`${baseSepolia.blockExplorers.default.url}/tx/${settleTx}`}
@@ -62,7 +81,29 @@ export default function BuyMarketAnalysisButton({ targetListingId }: Props) {
             </a>
           </div>
         )}
-        <MarketAnalysisView analysis={analysis} omitBuyerNote />
+        <div className="animate-fade-up-delayed">
+          <MarketAnalysisView analysis={analysis} omitBuyerNote />
+        </div>
+      </div>
+    );
+  }
+
+  // While the paid call is in flight, replace the static buy CTA with a
+  // live progress card and a content skeleton so the seller sees that work
+  // is happening.
+  if (isLoading) {
+    return (
+      <div className="mt-3 space-y-3">
+        <div className="rounded-lg border border-[var(--accent)] bg-[var(--accent-dim)] p-3">
+          <div className="flex items-center gap-2 text-sm text-[var(--text)]">
+            <InlineSpinner size={14} className="text-[var(--accent)]" />
+            <strong>{stageLabel(step)}</strong>
+            <span className="ml-auto font-mono text-xs text-[var(--text3)]">{elapsed}s</span>
+          </div>
+          <p className="mt-2 text-xs text-[var(--text2)]">{stageDetail(step)}</p>
+          <ProgressTrack step={step} />
+        </div>
+        <MarketAnalysisSkeleton />
       </div>
     );
   }
@@ -85,20 +126,73 @@ export default function BuyMarketAnalysisButton({ targetListingId }: Props) {
       </div>
       <button
         onClick={handleBuy}
-        disabled={!isConnected || isLoading}
+        disabled={!isConnected}
         className="btn-primary shrink-0 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {step === "signing"
-          ? "Sign…"
-          : step === "submitting"
-            ? "Generating…"
-            : "Buy for 0.5 USDC"}
+        Buy for 0.5 USDC
       </button>
       {(error || localError) && (
         <p className="basis-full text-xs text-[var(--red)] sm:basis-auto">
           {error || localError}
         </p>
       )}
+    </div>
+  );
+}
+
+function stageLabel(step: string): string {
+  switch (step) {
+    case "signing":
+      return "Sign USDC authorization in your wallet…";
+    case "submitting":
+      return "Generating premium analysis & settling on-chain…";
+    default:
+      return "Working…";
+  }
+}
+
+function stageDetail(step: string): string {
+  switch (step) {
+    case "signing":
+      return "Sign the EIP-3009 ReceiveWithAuthorization message — no transaction yet, just an authorization.";
+    case "submitting":
+      return "Gateway is invoking Claude on AWS Bedrock for the in-depth analysis (≈25-40s) and then submitting settle() on Base Sepolia.";
+    default:
+      return "";
+  }
+}
+
+function ProgressTrack({ step }: { step: string }) {
+  const stages: Array<{ key: string; label: string }> = [
+    { key: "signing", label: "Sign" },
+    { key: "submitting", label: "Generate + settle" },
+    { key: "success", label: "Done" },
+  ];
+  const activeIdx = stages.findIndex((s) => s.key === step);
+  return (
+    <div className="mt-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] text-[var(--text3)]">
+      {stages.map((s, i) => {
+        const done = i < activeIdx;
+        const active = i === activeIdx;
+        return (
+          <span
+            key={s.key}
+            className={`flex items-center gap-1 ${done ? "text-[var(--green)]" : active ? "text-[var(--accent)]" : ""}`}
+          >
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full ${
+                done
+                  ? "bg-[var(--green)]"
+                  : active
+                    ? "bg-[var(--accent)] animate-pulse"
+                    : "bg-[var(--border2)]"
+              }`}
+            />
+            {s.label}
+            {i < stages.length - 1 && <span className="text-[var(--border2)]">·</span>}
+          </span>
+        );
+      })}
     </div>
   );
 }
