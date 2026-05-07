@@ -28,7 +28,10 @@
       "Bash(chmod 600 ~/.openclaw/openclaw.json)",
       "Bash(node -e ' *)",
       "Bash(python3 -m json.tool ~/.openclaw/openclaw.json)",
-      "Bash(openclaw channels *)"
+      "Bash(openclaw channels *)",
+      "Bash(tee /tmp/trust1.json)",
+      "Bash(tee /tmp/market1.json)",
+      "Bash(grep -oE \"[A-Z][^.]{20,160}\\\\\\\\.\" /tmp/disc.html)"
     ]
   }
 }
