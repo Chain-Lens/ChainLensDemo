@@ -1,9 +1,10 @@
-export type AdminTab = "pending" | "apis" | "sellers";
+export type AdminTab = "pending" | "apis" | "sellers" | "treasury";
 
 const TABS: Array<{ id: AdminTab; label: string }> = [
   { id: "pending", label: "Pending" },
   { id: "apis", label: "All APIs" },
   { id: "sellers", label: "Sellers" },
+  { id: "treasury", label: "Treasury" },
 ];
 
 export default function AdminTabs({

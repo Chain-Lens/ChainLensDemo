@@ -23,6 +23,8 @@ import {
   type CallResult,
 } from "../services/listing-call.service.js";
 import { FetchSellerCallClient } from "../services/seller-call.client.js";
+import { RoutingSellerCallClient } from "../services/internal-sellers.js";
+import { marketAnalystHandler } from "../services/market-analyst-seller.js";
 import { OnChainSettlementService } from "../services/settlement.service.js";
 import { parseListingsQuery } from "../utils/listings-query-parser.js";
 import { parsePayment, makePaymentSignerRecovery, type PaymentAuth } from "../utils/payment.js";
@@ -65,11 +67,20 @@ const settlementService = new OnChainSettlementService(
 
 export { listingDetailService, listingsSearchService };
 
+// Compose the seller client so listings whose endpoint starts with
+// `internal://<route>` are dispatched to in-process handlers (currently the
+// AI Market Analyst SaaS — listing #18). Anything else hits the network as
+// before. See services/internal-sellers.ts for the rationale.
+const sellerClient = new RoutingSellerCallClient(
+  new FetchSellerCallClient(SELLER_TIMEOUT_MS),
+  { "market-analysis": marketAnalystHandler },
+);
+
 export const listingCallService = new ListingCallService({
   repo: listingsRepo,
   readListing,
   resolveMetadata,
-  sellerClient: new FetchSellerCallClient(SELLER_TIMEOUT_MS),
+  sellerClient,
   settlement: settlementService,
   signerRecovery: makePaymentSignerRecovery(publicClient, marketAddress, usdcAddress),
   logCall,

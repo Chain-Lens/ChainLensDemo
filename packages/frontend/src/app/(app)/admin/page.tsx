@@ -11,6 +11,7 @@ import AdminTabs, { type AdminTab } from "@/components/admin/AdminTabs";
 import PendingTab from "@/components/admin/PendingTab";
 import AllApisTab from "@/components/admin/AllApisTab";
 import SellersTab from "@/components/admin/SellersTab";
+import TreasuryTab from "@/components/admin/TreasuryTab";
 
 export default function AdminPage() {
   const auth = useAdminAuth();
@@ -58,6 +59,7 @@ export default function AdminPage() {
         <AllApisTab loading={allApis.loading} error={allApis.error} apis={allApis.apis} />
       )}
       {activeTab === "sellers" && <SellersTab enabled={activeTab === "sellers"} />}
+      {activeTab === "treasury" && <TreasuryTab />}
     </main>
   );
 }

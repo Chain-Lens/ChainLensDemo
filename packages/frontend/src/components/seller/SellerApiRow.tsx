@@ -6,6 +6,12 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { formatUsdcLabel } from "@/lib/format";
 import type { SellerApi } from "@/hooks/useSellerApis";
 import SellerEditForm, { type SellerPatch } from "./SellerEditForm";
+import BuyMarketAnalysisButton from "./BuyMarketAnalysisButton";
+
+// Don't show the "buy market analysis" CTA on the AI Market Analyst listing
+// itself — it would let a seller buy an analysis of the analyst, which is
+// nonsense and would also re-enter the same x402 path during the call.
+const CHAINLENS_MARKET_ANALYST_LISTING_ID = 18;
 
 export default function SellerApiRow({
   api,
@@ -95,6 +101,13 @@ export default function SellerApiRow({
           }}
         />
       )}
+
+      {!editing &&
+        api.status === "APPROVED" &&
+        typeof api.onChainId === "number" &&
+        api.onChainId !== CHAINLENS_MARKET_ANALYST_LISTING_ID && (
+          <BuyMarketAnalysisButton targetListingId={api.onChainId} />
+        )}
     </div>
   );
 }

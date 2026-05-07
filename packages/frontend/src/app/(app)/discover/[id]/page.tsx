@@ -43,6 +43,11 @@ export default async function DiscoverDetailPage({ params }: PageProps) {
           <ListingDetailMetaGrid meta={meta} stats={listing.stats} />
           <ListingDetailTags tags={meta?.tags ?? []} />
           <ListingPolicySignals recentErrors={listing.recentErrors} />
+
+          {/* AI Analyst (Trust + Market) is now a paid seller-side SaaS at
+              /seller. Discover keeps only deterministic signals so buyers
+              always see the same view regardless of LLM availability. */}
+
           <ListingExampleResponse example={meta?.example_response} />
         </section>
 
