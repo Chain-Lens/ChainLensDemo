@@ -11,19 +11,19 @@
 
 ## 🎬 Demo
 
-[![ChainLens demo — agent-native API marketplace with x402 + AWS Bedrock](https://img.youtube.com/vi/QlzaoXJS9S4/maxresdefault.jpg)](https://www.youtube.com/watch?v=QlzaoXJS9S4&t=168s)
+<a href="https://www.youtube.com/watch?v=QlzaoXJS9S4">
+  <img src="https://img.youtube.com/vi/QlzaoXJS9S4/maxresdefault.jpg" alt="ChainLens demo" width="600">
+</a>
 
-> Full walk-through with audio (16 min) — discover, inspect, pay-on-call,
-> verify on-chain, plus the AI Market Analyst SaaS for sellers.
-> [▶ Watch on YouTube](https://www.youtube.com/watch?v=QlzaoXJS9S4&t=168s)
+> Full walk-through with audio (16 min) — discover, inspect, pay-on-call, verify on-chain, plus the AI Market Analyst SaaS for sellers. [▶ Watch on YouTube](https://www.youtube.com/watch?v=QlzaoXJS9S4)
 
-**Chapters**
+**Chapters:**
 
-- [`00:00` Agent Purchase API Demo](https://youtu.be/QlzaoXJS9S4?t=0)
-- [`05:44` Using Bedrock Seller Analytic Service](https://youtu.be/QlzaoXJS9S4?t=344)
-- [`15:37` Using Bedrock Seller Analytic Service (cont.)](https://youtu.be/QlzaoXJS9S4?t=937)
+- `00:00` [Agent Purchase API Demo](https://youtu.be/QlzaoXJS9S4?t=0)
+- `05:44` [Using Bedrock Seller Analytic Service](https://youtu.be/QlzaoXJS9S4?t=344)
+- `15:37` [Using Bedrock Seller Analytic Service (cont.)](https://youtu.be/QlzaoXJS9S4?t=937)
 
-**Live demo:** <https://chainlens.pelicanlab.dev>
+**Live demo:** https://chainlens.pelicanlab.dev
 
 ---
 
