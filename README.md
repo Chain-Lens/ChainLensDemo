@@ -11,11 +11,17 @@
 
 ## 🎬 Demo
 
-[![ChainLens demo — agent-native API marketplace with x402 + AWS Bedrock](https://img.youtube.com/vi/5a4RK2OOSSQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=5a4RK2OOSSQ&t=12s)
+[![ChainLens demo — agent-native API marketplace with x402 + AWS Bedrock](https://img.youtube.com/vi/QlzaoXJS9S4/maxresdefault.jpg)](https://www.youtube.com/watch?v=QlzaoXJS9S4&t=168s)
 
-> Loom-style walk-through (5 min) — discover, inspect, pay-on-call,
+> Full walk-through with audio (16 min) — discover, inspect, pay-on-call,
 > verify on-chain, plus the AI Market Analyst SaaS for sellers.
-> [▶ Watch on YouTube](https://www.youtube.com/watch?v=5a4RK2OOSSQ&t=12s)
+> [▶ Watch on YouTube](https://www.youtube.com/watch?v=QlzaoXJS9S4&t=168s)
+
+**Chapters**
+
+- [`00:00` Agent Purchase API Demo](https://youtu.be/QlzaoXJS9S4?t=0)
+- [`05:44` Using Bedrock Seller Analytic Service](https://youtu.be/QlzaoXJS9S4?t=344)
+- [`15:37` Using Bedrock Seller Analytic Service (cont.)](https://youtu.be/QlzaoXJS9S4?t=937)
 
 **Live demo:** <https://chainlens.pelicanlab.dev>
 
