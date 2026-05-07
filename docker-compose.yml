@@ -23,8 +23,12 @@ services:
       - packages/backend/.env
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/monapi
-    ports:
-      - "127.0.0.1:9005:3001"
+      AWS_REGION: ${AWS_REGION:-us-east-2}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-us.anthropic.claude-sonnet-4-5-20250929-v1:0}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    expose:
+      - "3001"
     depends_on:
       db:
         condition: service_healthy
@@ -42,10 +46,21 @@ services:
     env_file:
       - packages/frontend/.env
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3030:3000"
+    expose:
+      - "3000"
     depends_on:
       - backend
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
 
 volumes:
   postgres_data:
