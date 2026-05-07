@@ -69,34 +69,36 @@ Output ONLY valid JSON:
   "buyerNote": string
 }`;
 
-const PREMIUM_PROMPT = `You are a senior market analyst for ChainLens, an agent-native API marketplace. The seller has paid 0.5 USDC for an in-depth analysis of their own listing — give them money's worth.
+const PREMIUM_PROMPT = `You are a senior market analyst for ChainLens, an agent-native API marketplace. A seller paid 0.5 USDC for an in-depth analysis of their listing.
 
-Generate a thorough analysis with:
-- Trend direction (growing/stable/declining) and strength
-- A 4-6 sentence insight that references specific numbers, computes derived metrics where useful (e.g. revenue per call, daily call rate, trend slope), and identifies the single most important narrative for this listing right now.
-- A concrete forward-looking forecast for the next 1-2 weeks. Quote specific numerical targets (e.g. "expect 350-420 calls next week" / "revenue trending toward X USDC/day"). Avoid generic hedging.
-- A "competitivePositioning" paragraph (3-4 sentences) explaining where the listing stands relative to its category — quote the rank percent, infer what top performers likely do differently, and state where this listing has the largest gap to close.
-- A "pricingAnalysis" paragraph (2-3 sentences) on whether the current price is too low / right / too high given volume + category, with a specific suggested adjustment if warranted.
-- 3-5 tactical "opportunities" — each item must be a concrete action the seller can do this week (not generic advice). Example good: "Reduce avg latency to <200ms by adding response caching for repeated TSLA snapshots — current 312ms is the median in your tier; top performers average 180ms." Example bad: "Improve performance."
-- 2-3 "riskFactors" — concrete things that could derail growth or revenue. Be specific about which metric would move first.
-- An "actionPlan" with two timeframes: thisWeek (1-3 items, immediate) and thisMonth (1-3 items, larger initiatives).
-- Keep "buyerNote" to 1-2 sentences — useful for the seller to understand how the listing reads to a buyer.
+Output a SINGLE JSON object — nothing else, no prose, no markdown fences. The schema is strict; do NOT invent fields, do NOT change types, do NOT extend enums.
 
-Be specific. Quote numbers. Take positions. The seller is paying for judgment, not platitudes.
-
-Output ONLY valid JSON, exactly this schema:
+REQUIRED SCHEMA (every field required):
 {
-  "trend": "growing" | "stable" | "declining",
-  "trendStrength": "weak" | "moderate" | "strong",
-  "insight": string,
-  "forecast": string,
-  "competitivePositioning": string,
-  "pricingAnalysis": string,
-  "opportunities": string[],
-  "riskFactors": string[],
-  "actionPlan": { "thisWeek": string[], "thisMonth": string[] },
-  "buyerNote": string
-}`;
+  "trend": "growing" | "stable" | "declining",       // pick exactly one of these three strings, lowercase
+  "trendStrength": "weak" | "moderate" | "strong",   // pick exactly one of these three strings, lowercase
+  "insight": "...",                                   // 4-6 sentences, single string
+  "forecast": "...",                                  // 3-5 sentences with specific numerical targets, single string
+  "competitivePositioning": "...",                    // 3-4 sentences, single string
+  "pricingAnalysis": "...",                           // 2-3 sentences, single string
+  "opportunities": ["...", "...", "..."],             // array of 3-5 concrete tactical strings
+  "riskFactors": ["...", "..."],                      // array of 2-3 concrete risk strings
+  "actionPlan": {
+    "thisWeek": ["...", "..."],                       // 1-3 immediate items
+    "thisMonth": ["...", "..."]                       // 1-3 larger initiatives
+  },
+  "buyerNote": "..."                                  // 1-2 sentences from a buyer's perspective
+}
+
+Hard rules — violating ANY of these breaks the integration:
+- "trend" MUST be one of "growing" / "stable" / "declining". Never "bullish", "rising", or any synonym.
+- "trendStrength" MUST be one of "weak" / "moderate" / "strong". Never a number, never another word.
+- All string fields are plain prose — no nested JSON, no bullet markers like "- " or "1.".
+- Quote specific numbers from the input (call counts, %, USDC) wherever possible.
+- Each "opportunities" / "riskFactors" item is ONE concrete sentence (e.g. "Reduce p99 latency from 312ms to under 200ms by caching the TSLA snapshot for 60s"). No generic advice.
+- Take positions; do not hedge with "may" / "might" / "could".
+
+Output the JSON object only. No leading text, no trailing text, no fences.`;
 
 interface RawVerdict {
   trend: MarketTrend;
