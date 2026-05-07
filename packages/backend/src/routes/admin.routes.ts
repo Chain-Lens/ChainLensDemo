@@ -23,7 +23,13 @@ const testApiSchema = z.object({
 router.get("/apis", async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const apis = await prisma.apiListing.findMany({
-      where: { contractVersion: "V3" },
+      // Hide ChainLens-internal listings (e.g. AI Market Analyst SaaS) from
+      // the admin "All APIs" view — they're not user-facing APIs and should
+      // not be approval-gated by humans. Manage them via dedicated tooling.
+      where: {
+        contractVersion: "V3",
+        NOT: { endpoint: { startsWith: "internal://" } },
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,

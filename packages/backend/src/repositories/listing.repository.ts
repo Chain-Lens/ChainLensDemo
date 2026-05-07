@@ -74,6 +74,12 @@ export class PrismaListingsRepository implements ListingsRepository {
       where: {
         contractVersion: "V3",
         status: "APPROVED",
+        // Hide ChainLens-internal listings (e.g. the AI Market Analyst SaaS,
+        // listing #18) from the public catalog. They're real on-chain
+        // listings — settle()-able by direct ID — but they shouldn't show up
+        // in /discover, marketplace search, SDK/MCP discover, etc., because
+        // they're not generic APIs that a buyer would shop for.
+        endpoint: { not: { startsWith: "internal://" } },
         ...(filter.q
           ? {
               OR: [
