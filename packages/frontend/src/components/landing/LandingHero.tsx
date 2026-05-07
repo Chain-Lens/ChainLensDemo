@@ -58,7 +58,7 @@ export default function LandingHero() {
       <div className={styles.directoryCta}>
         <span>Provider team?</span>
         <a
-          href="https://github.com/pelican-lab/awesome-onchain-data-providers"
+          href="https://github.com/Chain-Lens/awesome-onchain-data-providers"
           target="_blank"
           rel="noopener noreferrer"
         >
