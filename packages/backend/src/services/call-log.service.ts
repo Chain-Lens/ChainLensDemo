@@ -287,10 +287,15 @@ export interface RawRow {
   createdAt: Date;
 }
 
+/** Cold-start prior — matches the Beta(1,1) used by scoreListing (uniform,
+ *  expected value 0.5). 0% would imply "this listing is known to fail," which
+ *  is the wrong signal for a brand-new listing with zero observations. */
+export const COLD_START_SUCCESS_RATE = 0.5;
+
 export function aggregateRows(rows: RawRow[], windowDays: number): ListingStats {
   if (rows.length === 0) {
     return {
-      successRate: 0,
+      successRate: COLD_START_SUCCESS_RATE,
       avgLatencyMs: 0,
       totalCalls: 0,
       successes: 0,

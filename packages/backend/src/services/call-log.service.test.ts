@@ -10,10 +10,10 @@ import {
 } from "./call-log.service.js";
 
 describe("aggregateRows", () => {
-  test("returns zeros for empty rows", () => {
+  test("cold start (no rows) uses the Beta(1,1) prior — successRate 0.5", () => {
     const s = aggregateRows([], 30);
     assert.deepEqual(s, {
-      successRate: 0,
+      successRate: 0.5,
       avgLatencyMs: 0,
       totalCalls: 0,
       successes: 0,
