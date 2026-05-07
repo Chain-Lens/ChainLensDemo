@@ -31,7 +31,11 @@
       "Bash(openclaw channels *)",
       "Bash(tee /tmp/trust1.json)",
       "Bash(tee /tmp/market1.json)",
-      "Bash(grep -oE \"[A-Z][^.]{20,160}\\\\\\\\.\" /tmp/disc.html)"
+      "Bash(grep -oE \"[A-Z][^.]{20,160}\\\\\\\\.\" /tmp/disc.html)",
+      "Bash(gh auth *)",
+      "Read(//home/ubuntu/.ssh/**)",
+      "Bash(ssh-add -l)",
+      "Bash(grep *)"
     ]
   }
 }
